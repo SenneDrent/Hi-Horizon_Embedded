@@ -1,30 +1,9 @@
 # Hi-Horizon_Embedded
-this repository contains all the code used by the microcontroller on board of the raceboat. Its purpose is to collect data of power consumption and gain, speed and status of the boat. And display this on a screen and website through MQTT protocol.
+This repository contains all the code used by the microcontroller on board of the raceboat. Its purpose is to collect data of power consumption and gain, speed and status of the boat. And display this on a screen and website through MQTT protocol.
 
-## Setup
-Download the files or start a local branch on your PC. Except for the commons folder, every folder is a platformIO project except for interface (to be added), which is an STM32CubeIDE Project.
+## Setting up the work enviroment
+If you want to use the system or contribute to the codebase, first clone main to your PC.
 
-### MqttPublisher Wifi
-Since I don't want to expose passwords on the repository, the Wifi configuration file has been intentionally left out.
-In order to make the code for the ESP work, use the following steps:
-- Add a file named wifiConfig.h in MqttPublisher/include folder, this file is going to contain the information
-- In this file, paste the following template:
-```
-#ifndef wifiConfig_h
-#define wifiConfig_h
-
-//wifi name
-#define Wifi_SSID "user"
-//wifi password
-#define Wifi_PASSWORD "pwrd"
-
-//MQTT username
-#define MQTT_USER "user"
-//MQTT password
-#define MQTT_PWD "pwrd"
-//Link to MQTT server
-const char* mqtt_server = "example.com";
-
-#endif
-```
-- Upload the code to the ESP and check if everything works.
+One part of the codebase are Arduino Framework projects made in the [platformIO](https://platformio.org/) visual studio code plugin.
+The other part are [STM32CubeIde](https://www.st.com/content/st_com/en/stm32cubeide.html) projects.
+Read the [Wiki](https://github.com/SenneDrent/Hi-Horizon_Embedded/wiki) to check which one you should use and how to set this up.
