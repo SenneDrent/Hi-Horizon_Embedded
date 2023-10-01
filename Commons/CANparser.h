@@ -1,9 +1,9 @@
 #ifndef __CAN_HHRT_H
 #define __CAN_HHRT_H
 
+#include <buffer/buffer.h>
 #include <stdint.h>
 #include <DataFrame.h>
-#include "buffer/buffer.h"
 //put the following callback in your main to receive can messages on Rx0:
 
 //void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {

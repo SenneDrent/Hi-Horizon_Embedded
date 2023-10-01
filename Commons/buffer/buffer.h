@@ -4,8 +4,8 @@
  *  Created on: Jan 7, 2023
  *      Author: senne
  */
-#ifndef INC_BUFFER_H_
-#define INC_BUFFER_H_
+#ifndef INC_BUFFERa_H_
+#define INC_BUFFERa_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,4 +45,5 @@ float buffer_get_float32_auto(const uint8_t *buffer, int32_t *index);
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* INC_BUFFER_H_ */

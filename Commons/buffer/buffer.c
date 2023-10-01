@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
 
-#include "buffer.h"
+#include <buffer/buffer.h>
 
 
 void buffer_append_int8(uint8_t* buffer, int8_t number, int32_t *index) {
