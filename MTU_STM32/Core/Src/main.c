@@ -97,7 +97,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, MPPT_buf, MPPT_BUF_SIZE);
 	}
 	if (huart->Instance == UART5) { //GPS
-		parseNMEA(&data, GPS_buf, Size);
+		parseGPS(&data, GPS_buf, Size);
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart5, GPS_buf, GPS_BUF_SIZE);
 	}
 }
@@ -204,10 +204,6 @@ int main(void)
   EspHeader.TxFrameType 	= FDCAN_DATA_FRAME;
   EspHeader.DataLength 		= FDCAN_DLC_BYTES_2;
   EspHeader.FDFormat		= FDCAN_CLASSIC_CAN;
-
-  data.gps.lat = 52.456;
-  data.gps.lng = 40.312;
-  data.gps.speed = 21.234;
 
   data.motor.battery_current = 12.34;
   data.motor.battery_voltage = 46.23;
