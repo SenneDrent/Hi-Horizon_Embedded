@@ -41,6 +41,7 @@ unsigned long stalenessTimer = 0; //staleness check timer
 uint32_t timeSinceNTP = 0;
 bool timeSyncDone = false;
 uint8_t staleness = 0;
+bool validNewMessage = false;
 uint8_t oldstaleness = 0;
 String user = "";
 String pwrd = "";
@@ -63,16 +64,7 @@ void setup() {
   // PasswordLoop();
 
   SPISlave.onData([](uint8_t *data, size_t len) {
-    staleness = receiveSpiData(&dataFrame, data);
-    uint8_t buf[14];
-    int32_t index = generateMessageWithStuffing(
-      buf,
-      dataFrame.telemetry.NTPtime + ((millis() - timeSyncDone) / 1000), 
-      timeSyncDone,
-      status.getStatus(), 
-      status.getConnectionStrength()
-    );
-    SPISlave.setData(buf, index);
+    validNewMessage = receiveSpiData(&dataFrame, data);
   });
 
   SPISlave.begin();
@@ -86,6 +78,8 @@ void setup() {
   timeSyncDone = true;
 
   pinMode(LED_BUILTIN, OUTPUT); // Initialize the LED_BUILTIN pin as an output
+
+  setDateTime();
 
   status.updateStatus(TESTING_CERTS);
   int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
@@ -127,32 +121,29 @@ void loop() {
     Serial.println(status.getStatus());
   }
   
-  if (millis() - lastMsg > 1000L) {
+  if (millis() - lastMsg > 1000L && validNewMessage) {
     status.updateConnectionStrength(WiFi.RSSI());
     snprintf (msg, MSG_BUFFER_SIZE, 
-      "unixTime:%u\n"
-      "v:%f\n"
-      "ps:%i\n"
-      "gy:%f\n"
-      "gx:%f\n"
-      "mc:%f\n"
-      "pm:%f\n"
-      "vm:%f\n"
-      "vmp:%f"
+      "{"
+      "\"unixTime\":%u,"
+      "\"v\":%f,"
+      "\"Pz\":%i,"
+      "\"mc\":%f,"
+      "\"Pu\":%f,"
+      "\"vm\":%f"
+      "}"
     , dataFrame.telemetry.unixTime
     , dataFrame.gps.speed
     , dataFrame.mppt.power
-    , dataFrame.gps.lat
-    , dataFrame.gps.lng
     , dataFrame.motor.battery_current
     , dataFrame.motor.battery_current*dataFrame.motor.battery_voltage
-    , dataFrame.motor.battery_voltage
-    , dataFrame.mppt.voltage);
+    , dataFrame.motor.battery_voltage);
     // Serial.println("");
     // Serial.print(msg);
     // Serial.println("");
     client->publish("data", msg);
     lastMsg = millis();
+    validNewMessage = false;
   }
 }
 

@@ -5,17 +5,31 @@
 #include "DataFrame.h"
 #include "SpiConfig.h"
 
+void append_with_stuffing(uint8_t *buffer, uint8_t byte, int32_t *index) {
+    if (byte == SpiHeaderByte || byte == SpiFlagByte || byte == SpiTrailerByte) {
+        buffer_append_uint8(buffer, SpiFlagByte, index);
+    }
+    buffer_append_uint8(buffer, byte , index);
+}
+
+uint8_t calculateChecksum(uint8_t *msg, uint8_t messageSize) {
+	uint8_t checksum = 0;
+	for (int i=0; i < messageSize; i++) {
+		checksum += msg[i];
+	}
+	return checksum;
+}
+
 void sendFrameToEsp(SPI_HandleTypeDef *spi, DataFrame* data) {
   uint8_t transfercode[2] = {0x02, 0x00};
 
-
-  int32_t index = 0;
-  uint8_t buf[32];
-  for (int i = 0; i < 32; i++) {
-	  buf[i] = 0;
-  }
-//  uint16_t millis = (uint16_t) (HAL_GetTick() && 0x0000FFFF);
   uint16_t millis = 0;
+  int32_t index = 0;
+  int32_t index2 = 0;
+  uint8_t buf[32] = {};
+  uint8_t msg[32] = {};
+
+//  uint16_t millis = (uint16_t) (HAL_GetTick() && 0x0000FFFF);
   buffer_append_uint16(buf, millis, &index);
   buffer_append_float32(buf, data->gps.lat, 100, &index);
   buffer_append_float32(buf, data->gps.lng, 100, &index);
@@ -26,10 +40,18 @@ void sendFrameToEsp(SPI_HandleTypeDef *spi, DataFrame* data) {
 
   buffer_append_uint16(buf, data->mppt.power, &index);
 
+  buffer_append_uint8(buf, calculateChecksum(buf, index), &index);
+
+  buffer_append_uint8(msg, SpiHeaderByte, &index2);
+  for (int i =0; i < index; i++) {
+	  append_with_stuffing(msg, buf[i], &index2);
+  }
+  buffer_append_uint8(msg, SpiTrailerByte, &index2);
+
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 0);
 
   HAL_SPI_Transmit(spi, transfercode, sizeof(transfercode), 1000);
-  HAL_SPI_Transmit(spi, buf, sizeof(buf), 1000);
+  HAL_SPI_Transmit(spi, msg, sizeof(msg), 1000);
 
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 1);
 }

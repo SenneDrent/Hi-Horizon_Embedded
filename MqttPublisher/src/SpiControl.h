@@ -6,19 +6,53 @@
 #include "Arduino.h"
 #include "SpiConfig.h"
 
+bool isChecksumValid(uint8_t *msg, uint8_t messageSize) {
+    uint8_t checksum = msg[messageSize - 1];
+    uint8_t messageSum = 0;
+    for (int i = 0; i < messageSize - 1; i++) {
+        messageSum += msg[i];
+    }
+    if (messageSum == checksum) return true;
+    else return false; 
+}
 
-uint8_t receiveSpiData(DataFrame *dataFrame, uint8_t *data) {
-    int32_t index = 0;
-    uint8_t staleness = buffer_get_uint16(data, &index);
-    dataFrame->gps.lat = buffer_get_float32(data, 100, &index);
-    dataFrame->gps.lng = buffer_get_float32(data, 100, &index);
-    dataFrame->gps.speed = buffer_get_float32(data, 100, &index);
+bool receiveSpiData(DataFrame *dataFrame, uint8_t *data) {
+    int32_t index = 2;
+    int32_t bufIndex = 0;
+    uint8_t buf[32] = {};
 
-    dataFrame->motor.battery_current = buffer_get_float32(data, 100, &index);
-    dataFrame->motor.battery_voltage = buffer_get_float32(data, 100, &index);
+    if (data[1] != SpiHeaderByte) return false;
 
-    dataFrame->mppt.power = buffer_get_uint16(data, &index);
-    return staleness;
+    while(index < 32) { 
+        uint8_t next = data[index];
+
+        if (next == SpiHeaderByte) return false; //wrong header byte
+        if (next == SpiTrailerByte) break; //end of message
+        if (next == SpiFlagByte) {
+            index++;
+            buf[bufIndex++] = data[index]; //frame byte as actual data
+        }
+        else {
+            buf[bufIndex++] = next;
+        } //generic byte
+        index++;
+    }
+    if (bufIndex < 24) return false; //parts of the frame is missing
+
+    if (!isChecksumValid(buf, bufIndex)) return false;
+
+    index = 0;
+
+    uint8_t staleness = buffer_get_uint16(buf, &index);
+    dataFrame->gps.lat = buffer_get_float32(buf, 100, &index);
+    dataFrame->gps.lng = buffer_get_float32(buf, 100, &index);
+    dataFrame->gps.speed = buffer_get_float32(buf, 100, &index);
+
+    dataFrame->motor.battery_current = buffer_get_float32(buf, 100, &index);
+    dataFrame->motor.battery_voltage = buffer_get_float32(buf, 100, &index);
+
+    dataFrame->mppt.power = buffer_get_uint16(buf, &index);
+    return true;
 }
 
 void append_with_stuffing(uint8_t *buffer, uint8_t byte, int32_t *index) {
