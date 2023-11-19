@@ -1,3 +1,4 @@
+IMPORTANT: this repo has been moved to the Hi-Horizon orginization you can find it here: https://github.com/Hi-Horizon/Hi-Horizon_telemetry_dashboard2
 # Hi-Horizon_Embedded
 This repository contains all the code used by the microcontroller on board of the raceboat. Its purpose is to collect data of power consumption and gain, speed and status of the boat. And display this on a screen and website through MQTT protocol.
 
